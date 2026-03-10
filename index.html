@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ProgressViz - Dynamic Learning Map</title>
     <style>
-        /* CSS resets for consistency */
+        /* --- ORIGINAL STYLES (DO NOT CHANGE) --- */
         body, h1, h2, h3, p, ul, li {
             margin: 0;
             padding: 0;
@@ -24,7 +24,6 @@
             background-size: 20px 20px;
         }
 
-        /* Container for the interface */
         .interface-container {
             border: 1px solid #d1d9e6;
             background-color: #fff;
@@ -35,7 +34,6 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        /* Top annotation (Figma style) */
         .annotation-tab {
             background-color: #e6eef7;
             padding: 5px 10px;
@@ -46,14 +44,12 @@
             margin-bottom: 20px;
         }
 
-        /* Main app layout */
         .app-window {
             border: 1px solid #d1d9e6;
             border-radius: 4px;
             overflow: hidden;
         }
 
-        /* ProgressViz Header */
         .app-header {
             display: flex;
             align-items: center;
@@ -67,7 +63,6 @@
             background-color: #f0f0f0;
             border-radius: 4px;
             margin-right: 12px;
-            /* Simple placeholder Viz */
             display: flex; gap: 4px; padding: 4px; align-items: flex-end;
         }
         .logo-bar { background-color: #4caf50; width: 6px; }
@@ -81,7 +76,6 @@
         }
         .brand-text span { color: #4caf50; }
 
-        /* Navigation Tabs */
         .app-nav {
             display: flex;
             border-bottom: 1px solid #e0e0e0;
@@ -114,18 +108,16 @@
             position: relative;
         }
         
-        .nav-item.heatmap.active, .nav-item.discussion.active {
-            background-color: #fff9db; /* Match Figma's active shade */
+        .nav-item.heatmap.active, .nav-item.discussion.active, .nav-item.account.active {
+            background-color: #fff9db; 
         }
 
-        /* Map and Course Selector Layout */
         .map-section {
             display: flex;
             padding: 20px;
             gap: 20px;
         }
 
-        /* Learning Map Canvas */
         .map-canvas-container {
             flex: 3;
             background-color: #fafaff;
@@ -136,14 +128,13 @@
         }
 
         .user-course-title {
-            font-family: 'Courier New', Courier, monospace; /* To simulate Joyce handwritten style */
+            font-family: 'Courier New', Courier, monospace;
             font-size: 20px;
             font-weight: bold;
             color: #333;
             margin-bottom: 20px;
         }
 
-        /* Basic shape styling */
         .unit-box {
             padding: 6px 12px;
             border-radius: 4px;
@@ -153,7 +144,6 @@
             width: 70px;
         }
         
-        /* Specific coloring */
         .unit-green { background-color: #81c784; }
         .unit-red { background-color: #ef5350; }
         .unit-grey { background-color: #b0bec5; color: #fff; border-radius: 50%; width: 40px; height: 40px; line-height: 28px; padding: 0;}
@@ -168,14 +158,12 @@
         }
         .test-diamond p { transform: rotate(-45deg); }
 
-        /* SVG arrows container */
         .map-connections {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; /* Let clicks pass through to elements */
+            pointer-events: none;
         }
 
-        /* Map Element Positioning (Abstracted for simplicity) */
         .map-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -196,7 +184,6 @@
         #t3 { grid-column: 4; grid-row: 3; display:flex; justify-content:center;}
         #u7 { grid-column: 5; grid-row: 3; }
 
-        /* Course Selector Panel */
         .course-selector-panel {
             flex: 1;
             background-color: #f7f9fc;
@@ -253,10 +240,9 @@
             display: block;
         }
 
-        /* --- NEW DISCUSSION STYLES --- */
         .discussion-content {
             flex: 3;
-            display: none; /* Hidden by default */
+            display: none;
         }
         .discussion-grid {
             display: grid;
@@ -297,11 +283,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
-            cursor: pointer; /* To show it is clickable */
-            transition: transform 0.2s;
         }
-        .compete-card:hover { transform: translateY(-2px); border-color: #7b1fa2; }
-        
         .share-tag {
             background: #7b1fa2;
             color: white;
@@ -324,38 +306,6 @@
             box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
         }
 
-        /* --- LEADERBOARD SPECIFIC STYLES --- */
-        #leaderboardPage {
-            flex: 3;
-            display: none;
-            background-color: #f0fff4;
-            border: 1px solid #d4edda;
-            border-radius: 12px;
-            padding: 25px;
-        }
-        .leaderboard-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 8px;
-            font-size: 13px;
-        }
-        .leaderboard-table th {
-            background: #c6f6d5;
-            padding: 10px;
-            text-align: center;
-            border: 1px solid #b2f5ea;
-        }
-        .leaderboard-table td {
-            background: #ffffff;
-            padding: 12px;
-            text-align: center;
-            border-top: 1px solid #e2e8f0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .leaderboard-table td:first-child { border-left: 1px solid #e2e8f0; border-radius: 8px 0 0 8px; }
-        .leaderboard-table td:last-child { border-right: 1px solid #e2e8f0; border-radius: 0 8px 8px 0; }
-
-        /* Description text */
         .page-description {
             margin-top: 25px;
             font-size: 16px;
@@ -363,9 +313,41 @@
             color: #444;
         }
 
+        /* --- NEW ACCOUNT PAGE STYLES --- */
+        .account-content {
+            flex: 3;
+            display: none;
+        }
+        .welcome-text {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+        .account-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .account-btn {
+            background-color: #fbc02d;
+            border: 1px solid #d4a017;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+        .account-btn:active {
+            transform: translateY(2px);
+        }
+
         @media (max-width: 600px) {
             .map-section { flex-direction: column; }
             .course-selector-panel { width: 100%; margin-top: 20px; }
+            .account-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -388,7 +370,7 @@
                 <div class="nav-item">My Dashboard</div>
                 <div class="nav-item active heatmap" onclick="showPage('heatmap')">Heatmap</div>
                 <div class="nav-item discussion" onclick="showPage('discussion')">Discussion</div>
-                <div class="nav-item">Account</div>
+                <div class="nav-item account" onclick="showPage('account')">Account</div>
             </nav>
 
             <main class="map-section">
@@ -442,7 +424,7 @@
                             </div>
                         </div>
                         <div class="discussion-sidebar">
-                            <div class="card compete-card" onclick="showPage('leaderboard')">
+                            <div class="card compete-card">
                                 <div>
                                     <h4 style="font-size: 14px;">Compete with your peers</h4>
                                     <p style="font-size: 10px; color: #666;">Lets compete with your peers in this class! This helps strengthen your memory :)</p>
@@ -459,43 +441,20 @@
                     </div>
                 </div>
 
-                <div id="leaderboardPage">
-                    <h2 style="font-family: 'Segoe UI'; font-weight: 600; margin-bottom: 5px;">My Learning Challenge Arena</h2>
-                    <p style="font-family: 'Courier New'; font-weight: bold; font-size: 18px; margin-bottom: 20px;">Art History 103 -- Weekly Progress Leader Board</p>
-                    
-                    <table class="leaderboard-table">
-                        <thead>
-                            <tr>
-                                <th>Ranking</th>
-                                <th>Name</th>
-                                <th>Growth Points</th>
-                                <th>Badge</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>🥇 Champion</td>
-                                <td>Alex</td>
-                                <td>240 pts</td>
-                                <td>🔥 5-day streak</td>
-                            </tr>
-                            <tr>
-                                <td>🥈 Silver</td>
-                                <td>Mary</td>
-                                <td>215 pts</td>
-                                <td>🌱 Consistent</td>
-                            </tr>
-                            <tr>
-                                <td>🥉 Bronze</td>
-                                <td>Maria</td>
-                                <td>180 pts</td>
-                                <td>⭐ Fast Review</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="account-content" id="accountPage">
+                    <h2 class="user-course-title">My Account</h2>
+                    <p class="welcome-text">Hi, Joyce! Welcome Back :)</p>
+                    <div class="account-grid">
+                        <div class="account-btn">Edit User Profile</div>
+                        <div class="account-btn">My Booking Meetings</div>
+                        <div class="account-btn">My Action Plan</div>
+                        <div class="account-btn">My Challenge Arena</div>
+                        <div class="account-btn">My Achievements</div>
+                        <div class="account-btn">AI-Assistant</div>
+                    </div>
                 </div>
 
-                <aside class="course-selector-panel">
+                <aside class="course-selector-panel" id="sidebar">
                     <div class="panel-header">
                         Select Your Course <span>✉</span>
                     </div>
@@ -517,11 +476,12 @@
     </div>
 
     <script>
-        // Navigation Logic: Switch between Heatmap, Discussion, and Leaderboard
+        // Navigation Logic: Updated to include Account
         function showPage(pageId) {
             const heatmapPage = document.getElementById('heatmapPage');
             const discussionPage = document.getElementById('discussionPage');
-            const leaderboardPage = document.getElementById('leaderboardPage');
+            const accountPage = document.getElementById('accountPage');
+            const sidebar = document.getElementById('sidebar');
             const navItems = document.querySelectorAll('.nav-item');
             const annotation = document.getElementById('annotationLabel');
             const desc = document.getElementById('pageDesc');
@@ -529,24 +489,24 @@
             // Reset navigation active states
             navItems.forEach(item => item.classList.remove('active'));
 
-            // Default hide everything
+            // Hide all pages initially
             heatmapPage.style.display = 'none';
             discussionPage.style.display = 'none';
-            leaderboardPage.style.display = 'none';
+            accountPage.style.display = 'none';
+            sidebar.style.display = 'block'; // Show sidebar by default
 
             if (pageId === 'discussion') {
                 discussionPage.style.display = 'block';
                 document.querySelector('.discussion').classList.add('active');
                 annotation.innerText = "Interface: Discussion Board";
                 desc.innerText = "This page allows students to participate in peer discussions and reflections. Users can view instructor feedback, interact with classmates, and share learning experiences.";
-            } 
-            else if (pageId === 'leaderboard') {
-                leaderboardPage.style.display = 'block';
-                document.querySelector('.discussion').classList.add('active'); // Keep Discussion tab active
-                annotation.innerText = "Interface: Discussion Board";
-                desc.innerText = "This screen shows the weekly learning challenge leaderboard for a selected course. Students can see their ranking, growth points, and learning badges compared with their classmates.";
-            }
-            else {
+            } else if (pageId === 'account') {
+                accountPage.style.display = 'block';
+                sidebar.style.display = 'none'; // Hide sidebar on account page to match layout
+                document.querySelector('.account').classList.add('active');
+                annotation.innerText = "Interface: My Account";
+                desc.innerText = "The Account page provides Joyce with quick access to her profile, scheduled meetings, personal action plans, and achievements.";
+            } else {
                 heatmapPage.style.display = 'block';
                 document.querySelector('.heatmap').classList.add('active');
                 annotation.innerText = "Interface: Heatmap";
