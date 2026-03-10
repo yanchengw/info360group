@@ -3,385 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProgressViz - Dynamic Learning Map</title>
+    <title>ProgressViz - Interactive Prototype</title>
     <style>
-        /* CSS resets for consistency */
-        body, h1, h2, h3, p, ul, li {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            box-sizing: border-box;
-        }
-
-        body {
-            background-color: #f7f9fc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: #333;
-            background-image: radial-gradient(#ddd 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
-
-        /* Container for the interface */
-        .interface-container {
-            border: 1px solid #d1d9e6;
-            background-color: #fff;
-            padding: 20px;
-            max-width: 90%;
-            width: 800px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        /* Top annotation (Figma style) */
-        .annotation-tab {
-            background-color: #e6eef7;
-            padding: 5px 10px;
-            border: 1px solid #d1d9e6;
-            border-radius: 4px;
-            display: inline-block;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-
-        /* Main app layout */
-        .app-window {
-            border: 1px solid #d1d9e6;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        /* ProgressViz Header */
-        .app-header {
-            display: flex;
-            align-items: center;
-            padding: 15px 20px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .logo-viz {
-            width: 32px;
-            height: 32px;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            margin-right: 12px;
-            /* Simple placeholder Viz */
-            display: flex; gap: 4px; padding: 4px; align-items: flex-end;
-        }
-        .logo-bar { background-color: #4caf50; width: 6px; }
-        .logo-bar-1 { height: 10px; }
-        .logo-bar-2 { height: 18px; }
-        .logo-bar-3 { height: 25px; }
-
-        .brand-text {
-            font-size: 22px;
-            font-weight: 600;
-        }
+        /* [CORE STYLES - FROM PREVIOUS VERSION] */
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f7f9fc; display: flex; flex-direction: column; align-items: center; padding-top: 50px; }
+        .app-window { border: 1px solid #d1d9e6; border-radius: 8px; width: 800px; background: white; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .app-header { display: flex; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; }
+        .brand-text { font-size: 22px; font-weight: bold; }
         .brand-text span { color: #4caf50; }
 
-        /* Navigation Tabs */
-        .app-nav {
-            display: flex;
-            border-bottom: 1px solid #e0e0e0;
-            background-color: #f7f9fc;
-        }
+        /* Navigation Logic */
+        .app-nav { display: flex; background: #f1f3f5; border-bottom: 1px solid #eee; }
+        .nav-item { flex: 1; padding: 12px; text-align: center; cursor: pointer; border-right: 1px solid #ddd; transition: 0.2s; }
+        .nav-item:last-child { border-right: none; }
+        .nav-item.active { background: white; font-weight: bold; }
+        .nav-item.active.heatmap-tab { background: #fff9db; } /* Yellowish heatmap tab */
+        .nav-item.active.discussion-tab { background: #fff9db; }
 
-        .nav-item {
-            flex: 1;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            border-right: 1px solid #e0e0e0;
-            font-size: 14px;
-            color: #555;
-            transition: background-color 0.2s;
-        }
+        /* Content Visibility Logic */
+        .page-content { display: none; padding: 20px; }
+        .page-content.active { display: block; }
 
-        .nav-item:last-child {
-            border-right: none;
-        }
-
-        .nav-item:hover {
-            background-color: #edf2f7;
-        }
-
-        .nav-item.active {
-            background-color: #fff;
-            color: #333;
-            font-weight: 600;
-            position: relative;
-        }
+        /* [HEATMAP STYLES] */
+        .map-flex { display: flex; gap: 20px; }
+        .map-canvas { flex: 2; background: #fcfcff; border: 1px solid #eee; border-radius: 10px; padding: 20px; min-height: 300px; }
         
-        .nav-item.heatmap.active {
-            background-color: #fff9db; /* Match Figma's 'Heatmap' active shade */
-        }
-
-        /* Map and Course Selector Layout */
-        .map-section {
-            display: flex;
-            padding: 20px;
-            gap: 20px;
-        }
-
-        /* Learning Map Canvas */
-        .map-canvas-container {
-            flex: 3;
-            background-color: #fafaff;
-            border: 1px solid #eaeaff;
-            border-radius: 8px;
-            padding: 20px;
-            position: relative;
-        }
-
-        .user-course-title {
-            font-family: 'Courier New', Courier, monospace; /* To simulate Joyce handwritten style */
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        /* Basic shape styling */
-        .unit-box {
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            text-align: center;
-            color: #fff;
-            width: 70px;
-        }
+        /* [DISCUSSION BOARD STYLES] */
+        .discussion-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+        .card { border: 1px solid #eee; border-radius: 12px; padding: 20px; position: relative; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .feedback-card { grid-row: span 2; display: flex; flex-direction: column; align-items: flex-start; }
+        .card h3 { margin-bottom: 10px; font-size: 18px; }
+        .card p { font-size: 13px; color: #666; margin-bottom: 15px; }
+        .btn-select { border: 1px solid #333; padding: 5px 15px; border-radius: 4px; background: white; cursor: pointer; font-size: 12px; }
         
-        /* Specific coloring */
-        .unit-green { background-color: #81c784; }
-        .unit-red { background-color: #ef5350; }
-        .unit-grey { background-color: #b0bec5; color: #fff; border-radius: 50%; width: 40px; height: 40px; line-height: 28px; padding: 0;}
-        .test-diamond {
-            width: 30px; height: 30px;
-            background-color: #e1bee7;
-            border-radius: 4px;
-            transform: rotate(45deg);
-            display: flex; justify-content: center; align-items: center;
-            font-size: 8px;
-            color: #7b1fa2;
-        }
-        .test-diamond p { transform: rotate(-45deg); }
+        .circle-viz { width: 120px; height: 120px; border-radius: 50%; border: 2px dashed #ddd; margin: 20px auto; position: relative; }
+        .mini-card-img { width: 100%; border-radius: 8px; border: 1px solid #eee; }
+        .sticky-note { width: 100px; height: 100px; background: #fff4a3; position: absolute; right: 20px; bottom: 20px; transform: rotate(5deg); box-shadow: 2px 2px 5px rgba(0,0,0,0.1); padding: 10px; font-size: 10px; }
 
-        /* SVG arrows container */
-        .map-connections {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; /* Let clicks pass through to elements */
-        }
-
-        /* Map Element Positioning (Abstracted for simplicity) */
-        .map-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            gap: 15px;
-            position: relative;
-            margin-top: 10px;
-        }
-        
-        #u1 { grid-column: 2; grid-row: 1; }
-        #u2 { grid-column: 2; grid-row: 2; }
-        #u3 { grid-column: 2; grid-row: 3; }
-        #u4 { grid-column: 1; grid-row: 3; }
-        #u5 { grid-column: 3; grid-row: 1; }
-        #t1 { grid-column: 3; grid-row: 2; display:flex; justify-content:center; }
-        #u6 { grid-column: 4; grid-row: 2; }
-        #t2 { grid-column: 5; grid-row: 2; }
-        #t3 { grid-column: 4; grid-row: 3; display:flex; justify-content:center;}
-        #u7 { grid-column: 5; grid-row: 3; }
-
-        /* Course Selector Panel */
-        .course-selector-panel {
-            flex: 1;
-            background-color: #f7f9fc;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .panel-header {
-            background-color: #d1d9e6;
-            padding: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .course-list {
-            list-style: none;
-        }
-
-        .course-item {
-            padding: 10px;
-            font-size: 13px;
-            cursor: pointer;
-            border-bottom: 1px solid #e0e0e0;
-            color: #555;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .course-item:last-child {
-            border-bottom: none;
-        }
-
-        .course-item:hover {
-            background-color: #edf2f7;
-        }
-
-        .course-item.selected {
-            background-color: #fff;
-            color: #333;
-            font-weight: 600;
-        }
-        
-        .check-mark {
-            color: #4caf50;
-            font-weight: bold;
-            display: none;
-        }
-        .course-item.selected .check-mark {
-            display: block;
-        }
-
-        /* Description text */
-        .page-description {
-            margin-top: 25px;
-            font-size: 16px;
-            line-height: 1.6;
-            color: #444;
-        }
-
-        /* Mobile Version CSS Override (Media Query) */
-        @media (max-width: 600px) {
-            .map-section {
-                flex-direction: column;
-            }
-            .course-selector-panel {
-                width: 100%;
-                margin-top: 20px;
-            }
-            .user-course-title {
-                font-size: 18px;
-            }
-            .brand-text {
-                font-size: 18px;
-            }
-            .nav-item {
-                font-size: 12px;
-                padding: 10px 5px;
-            }
-        }
+        /* Description Footer */
+        .description-box { width: 800px; margin-top: 20px; color: #444; line-height: 1.6; }
     </style>
 </head>
 <body>
-    <div class="interface-container">
-        <div class="annotation-tab">Interface: Heatmap</div>
 
-        <div class="app-window">
-            <header class="app-header">
-                <div class="logo-viz">
-                    <div class="logo-bar logo-bar-1"></div>
-                    <div class="logo-bar logo-bar-2"></div>
-                    <div class="logo-bar logo-bar-3"></div>
+    <div class="app-window">
+        <header class="app-header">
+            <div class="brand-text">Progress<span>Viz</span></div>
+        </header>
+
+        <nav class="app-nav">
+            <div class="nav-item" onclick="showPage('dashboard')">My Dashboard</div>
+            <div class="nav-item heatmap-tab active" id="tab-heatmap" onclick="showPage('heatmap')">Heatmap</div>
+            <div class="nav-item discussion-tab" id="tab-discussion" onclick="showPage('discussion')">Discussion</div>
+            <div class="nav-item" onclick="showPage('account')">Account</div>
+        </nav>
+
+        <main id="page-heatmap" class="page-content active">
+            <div class="map-flex">
+                <div class="map-canvas">
+                    <h2 style="font-family: cursive;">Joyce Art History 103</h2>
+                    <p>Learning Map Visual goes here...</p>
                 </div>
-                <div class="brand-text">Progress<span>Viz</span></div>
-            </header>
+                <div style="flex:1; background: #eee; padding: 10px; border-radius: 5px;">
+                    <h4>Select Course</h4>
+                    <p style="background: white; padding: 5px; margin-top:5px;">Art History 103 ✓</p>
+                    <p style="padding: 5px;">Music 185</p>
+                </div>
+            </div>
+        </main>
 
-            <nav class="app-nav">
-                <div class="nav-item">All Courses</div>
-                <div class="nav-item">My Dashboard</div>
-                <div class="nav-item active heatmap">Heatmap</div>
-                <div class="nav-item">Discussion</div>
-                <div class="nav-item">Account</div>
-            </nav>
-
-            <main class="map-section">
-                <div class="map-canvas-container">
-                    <h2 class="user-course-title" id="mapTitle">Joyce Art History 103</h2>
-                    
-                    <div class="map-grid">
-                        <div class="unit-box unit-green" id="u1">Unit 1</div>
-                        <div class="unit-box unit-green" id="u2">Unit 2</div>
-                        <div class="unit-box unit-red" id="u3">Unit 3</div>
-                        <div class="unit-box unit-grey" id="u4">Unit 4</div>
-                        <div class="unit-box unit-green" id="u5">Unit 5</div>
-                        <div class="test-diamond" id="t1"><p>test 1</p></div>
-                        <div class="unit-box unit-red" id="u6">Unit 6</div>
-                        <div class="test-diamond" id="t2"><p>test 2</p></div>
-                        <div class="test-diamond" id="t3"><p>test 3</p></div>
-                        <div class="unit-box unit-green" id="u7">Unit 7</div>
+        <main id="page-discussion" class="page-content">
+            <h2 style="margin-bottom: 20px;">My Discussion Board</h2>
+            <div class="discussion-grid">
+                <div class="card feedback-card">
+                    <h3>View instructors' feedback</h3>
+                    <p>Your instructor has given a new feedback! Check this and review for getting a better score next time!</p>
+                    <button class="btn-select">select your course</button>
+                    <div class="circle-viz">
+                        <div style="position:absolute; top:40%; left:40%; background:#4a90e2; color:white; border-radius:50%; width:30px; height:30px; display:flex; justify-content:center; align-items:center;">👤</div>
                     </div>
-
-                    <svg class="map-connections" viewBox="0 0 500 300">
-                        <path d="M125 45 L125 70" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
-                        <path d="M125 95 L125 120" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
-                        <path d="M125 145 C 80 145, 80 100, 100 85" stroke="#ef5350" fill="none" marker-end="url(#arrowhead)"/>
-                        <path d="M160 145 L200 110" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
-                        <path d="M230 110 L260 45" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
-                        <path d="M230 110 L260 110" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
-                        <path d="M330 110 L370 110" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
-                        <path d="M400 110 L430 110" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
-                        <path d="M430 160 L330 160" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
-                        <path d="M300 160 L230 120" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
-
-                        <defs>
-                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
-                                <polygon points="0 0, 10 3.5, 0 7" fill="#aaa" />
-                            </marker>
-                        </defs>
-                    </svg>
                 </div>
 
-                <aside class="course-selector-panel">
-                    <div class="panel-header">
-                        Select Your Course <span>✉</span>
+                <div class="card">
+                    <div style="display:flex; gap:10px;">
+                        <div style="flex:1">
+                            <h3>Compete with your peers</h3>
+                            <p>Let's compete with your peers in this class!</p>
+                        </div>
+                        <div style="flex:1"><div style="background:#f9f9f9; height:60px; border-radius:5px; border:1px solid #ddd;"></div></div>
                     </div>
-                    <ul class="course-list">
-                        <li class="course-item selected" onclick="selectCourse(this, 'Art History 103')">Art History 103 <span class="check-mark">✓</span></li>
-                        <li class="course-item" onclick="selectCourse(this, 'Music 185')">Music 185 <span class="check-mark">✓</span></li>
-                        <li class="course-item" onclick="selectCourse(this, 'Algebra 101')">Algebra 101 <span class="check-mark">✓</span></li>
-                        <li class="course-item" onclick="selectCourse(this, 'Chinese 201')">Chinese 201 <span class="check-mark">✓</span></li>
-                        <li class="course-item" onclick="selectCourse(this, 'Spanish 102')">Spanish 102 <span class="check-mark">✓</span></li>
-                        <li class="course-item" onclick="selectCourse(this, 'Marketing 108')">Marketing 108 <span class="check-mark">✓</span></li>
-                    </ul>
-                </aside>
-            </main>
-        </div>
+                </div>
 
-        <p class="page-description">
-            This page shows the core feature of ProgressViz: the dynamic learning map. Students can see how different topics connect and track their learning progress across units. The visual map helps make learning progress more visible and easier to understand.
-        </p>
+                <div class="card" style="height: 150px;">
+                    <h3>View your ranking</h3>
+                    <p>Here's the learning challenge arena!</p>
+                    <button class="btn-select">select your course</button>
+                    <div class="sticky-note">Add text</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="description-box">
+        <p id="desc-text">This page shows the core feature of ProgressViz: the dynamic learning map. Students can see how different topics connect and track their learning progress.</p>
     </div>
 
     <script>
-        // Interactivity: Course Selection
-        function selectCourse(element, courseName) {
-            // Deselect previous course
-            const currentSelected = document.querySelector('.course-item.selected');
-            if (currentSelected) {
-                currentSelected.classList.remove('selected');
+        function showPage(pageId) {
+            // 1. Hide all pages
+            document.querySelectorAll('.page-content').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // 2. Remove active class from all tabs
+            document.querySelectorAll('.nav-item').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // 3. Show the requested page
+            const selectedPage = document.getElementById('page-' + pageId);
+            if (selectedPage) {
+                selectedPage.classList.add('active');
+                document.getElementById('tab-' + pageId).classList.add('active');
             }
 
-            // Select new course
-            element.classList.add('selected');
-
-            // Update Map Title
-            document.getElementById('mapTitle').innerText = 'Joyce ' + courseName;
-
-            // Optional: Simulate changing the map content/colors based on the course
-            // For a demo, we can just highlight the core course selection.
+            // 4. Update description text dynamically
+            const desc = document.getElementById('desc-text');
+            if (pageId === 'heatmap') {
+                desc.innerText = "This page shows the core feature of ProgressViz: the dynamic learning map. Students can see how different topics connect and track their learning progress.";
+            } else if (pageId === 'discussion') {
+                desc.innerText = "This page allows students to participate in peer discussions and reflections. Users can view instructor feedback, interact with classmates, and share learning experiences.";
+            }
         }
     </script>
 </body>
 </html>
-
