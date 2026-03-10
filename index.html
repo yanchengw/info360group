@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProgressViz - Dynamic Learning Map</title>
+    <style>
+        /* CSS resets for consistency */
+        body, h1, h2, h3, p, ul, li {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f7f9fc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+            background-image: radial-gradient(#ddd 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* Container for the interface */
+        .interface-container {
+            border: 1px solid #d1d9e6;
+            background-color: #fff;
+            padding: 20px;
+            max-width: 90%;
+            width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Top annotation (Figma style) */
+        .annotation-tab {
+            background-color: #e6eef7;
+            padding: 5px 10px;
+            border: 1px solid #d1d9e6;
+            border-radius: 4px;
+            display: inline-block;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* Main app layout */
+        .app-window {
+            border: 1px solid #d1d9e6;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        /* ProgressViz Header */
+        .app-header {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .logo-viz {
+            width: 32px;
+            height: 32px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin-right: 12px;
+            /* Simple placeholder Viz */
+            display: flex; gap: 4px; padding: 4px; align-items: flex-end;
+        }
+        .logo-bar { background-color: #4caf50; width: 6px; }
+        .logo-bar-1 { height: 10px; }
+        .logo-bar-2 { height: 18px; }
+        .logo-bar-3 { height: 25px; }
+
+        .brand-text {
+            font-size: 22px;
+            font-weight: 600;
+        }
+        .brand-text span { color: #4caf50; }
+
+        /* Navigation Tabs */
+        .app-nav {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: #f7f9fc;
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            border-right: 1px solid #e0e0e0;
+            font-size: 14px;
+            color: #555;
+            transition: background-color 0.2s;
+        }
+
+        .nav-item:last-child {
+            border-right: none;
+        }
+
+        .nav-item:hover {
+            background-color: #edf2f7;
+        }
+
+        .nav-item.active {
+            background-color: #fff;
+            color: #333;
+            font-weight: 600;
+            position: relative;
+        }
+        
+        .nav-item.heatmap.active {
+            background-color: #fff9db; /* Match Figma's 'Heatmap' active shade */
+        }
+
+        /* Map and Course Selector Layout */
+        .map-section {
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* Learning Map Canvas */
+        .map-canvas-container {
+            flex: 3;
+            background-color: #fafaff;
+            border: 1px solid #eaeaff;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .user-course-title {
+            font-family: 'Courier New', Courier, monospace; /* To simulate Joyce handwritten style */
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* Basic shape styling */
+        .unit-box {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-align: center;
+            color: #fff;
+            width: 70px;
+        }
+        
+        /* Specific coloring */
+        .unit-green { background-color: #81c784; }
+        .unit-red { background-color: #ef5350; }
+        .unit-grey { background-color: #b0bec5; color: #fff; border-radius: 50%; width: 40px; height: 40px; line-height: 28px; padding: 0;}
+        .test-diamond {
+            width: 30px; height: 30px;
+            background-color: #e1bee7;
+            border-radius: 4px;
+            transform: rotate(45deg);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 8px;
+            color: #7b1fa2;
+        }
+        .test-diamond p { transform: rotate(-45deg); }
+
+        /* SVG arrows container */
+        .map-connections {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; /* Let clicks pass through to elements */
+        }
+
+        /* Map Element Positioning (Abstracted for simplicity) */
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 15px;
+            position: relative;
+            margin-top: 10px;
+        }
+        
+        #u1 { grid-column: 2; grid-row: 1; }
+        #u2 { grid-column: 2; grid-row: 2; }
+        #u3 { grid-column: 2; grid-row: 3; }
+        #u4 { grid-column: 1; grid-row: 3; }
+        #u5 { grid-column: 3; grid-row: 1; }
+        #t1 { grid-column: 3; grid-row: 2; display:flex; justify-content:center; }
+        #u6 { grid-column: 4; grid-row: 2; }
+        #t2 { grid-column: 5; grid-row: 2; }
+        #t3 { grid-column: 4; grid-row: 3; display:flex; justify-content:center;}
+        #u7 { grid-column: 5; grid-row: 3; }
+
+        /* Course Selector Panel */
+        .course-selector-panel {
+            flex: 1;
+            background-color: #f7f9fc;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background-color: #d1d9e6;
+            padding: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .course-list {
+            list-style: none;
+        }
+
+        .course-item {
+            padding: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            border-bottom: 1px solid #e0e0e0;
+            color: #555;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .course-item:last-child {
+            border-bottom: none;
+        }
+
+        .course-item:hover {
+            background-color: #edf2f7;
+        }
+
+        .course-item.selected {
+            background-color: #fff;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .check-mark {
+            color: #4caf50;
+            font-weight: bold;
+            display: none;
+        }
+        .course-item.selected .check-mark {
+            display: block;
+        }
+
+        /* Description text */
+        .page-description {
+            margin-top: 25px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #444;
+        }
+
+        /* Mobile Version CSS Override (Media Query) */
+        @media (max-width: 600px) {
+            .map-section {
+                flex-direction: column;
+            }
+            .course-selector-panel {
+                width: 100%;
+                margin-top: 20px;
+            }
+            .user-course-title {
+                font-size: 18px;
+            }
+            .brand-text {
+                font-size: 18px;
+            }
+            .nav-item {
+                font-size: 12px;
+                padding: 10px 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="interface-container">
+        <div class="annotation-tab">Interface: Heatmap</div>
+
+        <div class="app-window">
+            <header class="app-header">
+                <div class="logo-viz">
+                    <div class="logo-bar logo-bar-1"></div>
+                    <div class="logo-bar logo-bar-2"></div>
+                    <div class="logo-bar logo-bar-3"></div>
+                </div>
+                <div class="brand-text">Progress<span>Viz</span></div>
+            </header>
+
+            <nav class="app-nav">
+                <div class="nav-item">All Courses</div>
+                <div class="nav-item">My Dashboard</div>
+                <div class="nav-item active heatmap">Heatmap</div>
+                <div class="nav-item">Discussion</div>
+                <div class="nav-item">Account</div>
+            </nav>
+
+            <main class="map-section">
+                <div class="map-canvas-container">
+                    <h2 class="user-course-title" id="mapTitle">Joyce Art History 103</h2>
+                    
+                    <div class="map-grid">
+                        <div class="unit-box unit-green" id="u1">Unit 1</div>
+                        <div class="unit-box unit-green" id="u2">Unit 2</div>
+                        <div class="unit-box unit-red" id="u3">Unit 3</div>
+                        <div class="unit-box unit-grey" id="u4">Unit 4</div>
+                        <div class="unit-box unit-green" id="u5">Unit 5</div>
+                        <div class="test-diamond" id="t1"><p>test 1</p></div>
+                        <div class="unit-box unit-red" id="u6">Unit 6</div>
+                        <div class="test-diamond" id="t2"><p>test 2</p></div>
+                        <div class="test-diamond" id="t3"><p>test 3</p></div>
+                        <div class="unit-box unit-green" id="u7">Unit 7</div>
+                    </div>
+
+                    <svg class="map-connections" viewBox="0 0 500 300">
+                        <path d="M125 45 L125 70" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
+                        <path d="M125 95 L125 120" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
+                        <path d="M125 145 C 80 145, 80 100, 100 85" stroke="#ef5350" fill="none" marker-end="url(#arrowhead)"/>
+                        <path d="M160 145 L200 110" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
+                        <path d="M230 110 L260 45" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
+                        <path d="M230 110 L260 110" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
+                        <path d="M330 110 L370 110" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
+                        <path d="M400 110 L430 110" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
+                        <path d="M430 160 L330 160" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
+                        <path d="M300 160 L230 120" stroke="#aaa" fill="none" marker-end="url(#arrowhead)"/>
+
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#aaa" />
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+
+                <aside class="course-selector-panel">
+                    <div class="panel-header">
+                        Select Your Course <span>✉</span>
+                    </div>
+                    <ul class="course-list">
+                        <li class="course-item selected" onclick="selectCourse(this, 'Art History 103')">Art History 103 <span class="check-mark">✓</span></li>
+                        <li class="course-item" onclick="selectCourse(this, 'Music 185')">Music 185 <span class="check-mark">✓</span></li>
+                        <li class="course-item" onclick="selectCourse(this, 'Algebra 101')">Algebra 101 <span class="check-mark">✓</span></li>
+                        <li class="course-item" onclick="selectCourse(this, 'Chinese 201')">Chinese 201 <span class="check-mark">✓</span></li>
+                        <li class="course-item" onclick="selectCourse(this, 'Spanish 102')">Spanish 102 <span class="check-mark">✓</span></li>
+                        <li class="course-item" onclick="selectCourse(this, 'Marketing 108')">Marketing 108 <span class="check-mark">✓</span></li>
+                    </ul>
+                </aside>
+            </main>
+        </div>
+
+        <p class="page-description">
+            This page shows the core feature of ProgressViz: the dynamic learning map. Students can see how different topics connect and track their learning progress across units. The visual map helps make learning progress more visible and easier to understand.
+        </p>
+    </div>
+
+    <script>
+        // Interactivity: Course Selection
+        function selectCourse(element, courseName) {
+            // Deselect previous course
+            const currentSelected = document.querySelector('.course-item.selected');
+            if (currentSelected) {
+                currentSelected.classList.remove('selected');
+            }
+
+            // Select new course
+            element.classList.add('selected');
+
+            // Update Map Title
+            document.getElementById('mapTitle').innerText = 'Joyce ' + courseName;
+
+            // Optional: Simulate changing the map content/colors based on the course
+            // For a demo, we can just highlight the core course selection.
+        }
+    </script>
+</body>
+</html>
+
